@@ -41,5 +41,5 @@ yarn-error.log*
 next-env.d.ts
 .env.local
 
-# local config (contains API keys, never push to GitHub)
+# local secret config (contains API keys)
 /lib/config.ts

@@ -56,12 +56,13 @@ export default function InterviewPage() {
   const synthRef = useRef<SpeechSynthesis | null>(null);
   const loadedVoicesRef = useRef<SpeechSynthesisVoice[]>([]);
   const isListeningRef = useRef(false);
+  const transcriptBufferRef = useRef(""); // Persists across recognition auto-restarts
 
   useEffect(() => {
     const name = sessionStorage.getItem("candidate_name");
     if (!name) { router.push("/"); return; }
     setCandidateName(name);
-    
+
     if (typeof window !== "undefined") {
       synthRef.current = window.speechSynthesis;
       const loadVoices = () => {
@@ -92,35 +93,63 @@ export default function InterviewPage() {
     animateBars(false);
   }, [animateBars]);
 
-  const speakQuestion = useCallback((questionText: string, onDone: () => void) => {
+  // Waits until Chrome has loaded its full premium voice list
+  const waitForVoices = useCallback((): Promise<SpeechSynthesisVoice[]> => {
+    return new Promise(resolve => {
+      const voices = window.speechSynthesis.getVoices();
+      if (voices.length > 0) {
+        loadedVoicesRef.current = voices;
+        resolve(voices);
+        return;
+      }
+      // Chrome needs ~1-2s to asynchronously load premium voices
+      const onReady = () => {
+        const v = window.speechSynthesis.getVoices();
+        loadedVoicesRef.current = v;
+        resolve(v);
+      };
+      window.speechSynthesis.onvoiceschanged = onReady;
+    });
+  }, []);
+
+  const speakQuestion = useCallback(async (questionText: string, onDone: () => void) => {
     if (!synthRef.current) { onDone(); return; }
     synthRef.current.cancel();
 
-    // Clean up text for speech
-    const cleanText = questionText.replace(/\[.*\]/g, "");
+    // Wait until premium voices are confirmed loaded before creating the utterance
+    const voices = await waitForVoices();
+
+    // Clean up text for speech - remove tags and extra whitespace
+    const cleanText = questionText
+      .replace(/\[.*?\]/g, "")
+      .replace(/\*+/g, "")
+      .replace(/#+/g, "")
+      .trim();
 
     const utter = new SpeechSynthesisUtterance(cleanText);
-    utter.rate = 0.95; // Slightly slower feels more conversational
-    utter.pitch = 1.0; // Flat pitch helps avoid the robotic "sing-song" default
+    // Human-like voice settings: slightly slower, natural pitch variation
+    utter.rate = 0.88;   // Slower = more thoughtful, human
+    utter.pitch = 1.05;  // Very slightly above mid = warm, friendly
     utter.volume = 1;
-    const voices = loadedVoicesRef.current.length > 0 ? loadedVoicesRef.current : synthRef.current.getVoices();
-    
-    // Proactively hunt for premium, natural-sounding, or high-definition voices
-    const preferred = 
-      voices.find(v => v.name.includes("Natural") && v.lang.includes("en")) ||
-      voices.find(v => v.name.includes("Google UK English Female")) ||
-      voices.find(v => v.name.includes("Google US English")) ||
-      voices.find(v => v.name.includes("Aria")) ||
-      voices.find(v => v.name.includes("Samantha")) ||
+
+    // Priority order: Google Neural voices first, then AI voices, then any English
+    const preferred =
+      voices.find(v => v.name === "Google UK English Female") ||
+      voices.find(v => v.name === "Google US English") ||
+      voices.find(v => v.name.includes("Natural") && v.lang.startsWith("en")) ||
+      voices.find(v => v.name.includes("Neural") && v.lang.startsWith("en")) ||
+      voices.find(v => v.name === "Microsoft Aria Online (Natural) - English (United States)") ||
+      voices.find(v => v.name === "Samantha") ||
       voices.find(v => v.name.includes("Google") && v.lang.startsWith("en")) ||
+      voices.find(v => v.lang.startsWith("en-IN")) ||
       voices.find(v => v.lang.startsWith("en-"));
-      
+
     if (preferred) utter.voice = preferred;
     utter.onstart = () => { setIsSpeaking(true); animateBars(true); };
     utter.onend = () => { setIsSpeaking(false); animateBars(false); onDone(); };
     utter.onerror = () => { setIsSpeaking(false); animateBars(false); onDone(); };
     synthRef.current.speak(utter);
-  }, [animateBars]);
+  }, [animateBars, waitForVoices]);
 
   const startListening = useCallback(() => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -130,38 +159,47 @@ export default function InterviewPage() {
     setTimeLeft(90);
     setPhase("listening");
     animateBars(true);
+    transcriptBufferRef.current = ""; // Reset buffer for fresh answer
 
     const recognition = new SR();
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = "en-IN";
+    recognition.maxAlternatives = 1;
     recognitionRef.current = recognition;
 
+    // Accumulate final results into a persistent ref to survive auto-restarts
     recognition.onresult = (e: SpeechRecognitionEvent) => {
       let final = "";
       let interim = "";
       for (let i = e.resultIndex; i < e.results.length; i++) {
         const t = e.results[i][0].transcript;
-        if (e.results[i].isFinal) final += t + " ";
-        else interim += t;
+        if (e.results[i].isFinal) {
+          final += t + " ";
+        } else {
+          interim += t;
+        }
       }
-      if (final) setTranscript(prev => prev + final);
+      if (final) {
+        transcriptBufferRef.current += final;
+        setTranscript(transcriptBufferRef.current);
+      }
       setInterimTranscript(interim);
     };
-    
+
     recognition.onend = () => {
       if (isListeningRef.current) {
-        // Browser aggressively cut off listening due to silence! Auto-restart it!
+        // Auto-restart if browser killed mic due to silence
         try { recognition.start(); } catch { /* ignore */ }
       } else {
         animateBars(false);
       }
     };
-    
+
     recognition.onerror = (e: { error: string }) => {
-      if (e.error !== "no-speech" && e.error !== "aborted") {
-        setMicError("Mic error: " + e.error + ". Please allow microphone access.");
-      }
+      // no-speech and aborted are harmless — the onend restart handler takes over
+      if (e.error === "no-speech" || e.error === "aborted") return;
+      setMicError("Mic error: " + e.error + ". Please allow microphone access.");
       animateBars(false);
     };
 

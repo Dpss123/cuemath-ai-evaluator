@@ -15,74 +15,81 @@ export async function POST(req: NextRequest) {
       `${m.role === "assistant" ? "Interviewer" : "Candidate"}: ${m.content}`
     )).join("\n\n");
 
-    const prompt = `You are an expert interviewer evaluating a tutor candidate for Cuemath, an online math education platform for students ages 6-18.
+    const prompt = `You are an expert senior HR evaluator at Cuemath, a premium online math education platform for students aged 6-18.
 
-Candidate name: ${candidateName}
+You have just conducted a real live voice interview with a tutor candidate. Below is the COMPLETE, VERBATIM transcript of everything that was said.
 
-Here is the full interview transcript:
+Candidate Name: ${candidateName}
+
+=== FULL INTERVIEW TRANSCRIPT ===
 ${transcript}
+=== END OF TRANSCRIPT ===
 
-Evaluate the candidate on these 5 dimensions. For each dimension, provide:
-1. A score from 1-10
-2. A one-line summary (max 12 words)
-3. One direct quote from their answer as evidence (keep it under 20 words)
-4. One specific improvement suggestion
+YOUR TASK: Read the transcript above carefully. Evaluate ONLY what the candidate actually said. Do NOT invent answers. Do NOT use example values. Your scores must be directly justified by real evidence from the transcript above.
 
-Dimensions to score:
-- Communication Clarity: Can they explain things simply and coherently?
-- Warmth & Patience: Do they sound caring, empathetic, student-first?
-- Teaching Ability: Can they break down concepts effectively?
-- Student Empathy: Do they understand how students feel when stuck?
-- English Fluency: Is their language clear and appropriate?
+SCORING GUIDE (be honest and strict):
+- 1-3: Poor. The candidate barely responded, gave one-word answers, or said nothing meaningful.
+- 4-5: Below average. Answered but very vaguely, showed little communication skill.
+- 6-7: Average. Showed some warmth or clarity but room for improvement.
+- 8-9: Good. Clear, empathetic, well-communicated answers.
+- 10: Exceptional. Truly stood out in this dimension.
 
-Also provide:
-- Overall verdict: "Strong Recommend" / "Recommend" / "Borderline" / "Not Recommend"
-- Overall score (average of 5 dimensions, to 1 decimal)
-- A 2-sentence hiring manager summary. IMPORTANT: This evaluation is the main factor for selecting candidates for the second round. Make sure the summary explicitly states whether their soft skills make them a good fit to advance to the second round.
+IMPORTANT RULES:
+1. If the candidate gave very short, vague, or no answers — give LOW scores (1-4). Do NOT default to 7 or 8.
+2. Every "quote" field MUST be an actual verbatim quote from the transcript above. If no useful quote exists, write "No relevant response given."
+3. The "summary" must honestly reflect what they said, not what an ideal candidate would say.
+4. The overallScore must be the true mathematical average of the 5 dimension scores (to 1 decimal place).
+5. The verdict must match the score: 1-4="Not Recommend", 5-6="Borderline", 7-8="Recommend", 9-10="Strong Recommend"
+6. The hiringManagerSummary must explicitly state whether this candidate should advance to the second round, based on their actual performance.
 
-CRITICAL INSTRUCTION: We are hiring for soft skills. Do not penalize heavily for mathematical mistakes; judge them on communication, patience, warmth, English fluency, and how well they simplify concepts.
+Evaluate on these 5 dimensions:
+- Communication Clarity: How well did they explain things? Were they clear and structured?
+- Warmth & Patience: Did they sound caring, kind, student-first?
+- Teaching Ability: Could they break down concepts in a way a child would understand?
+- Student Empathy: Did they show understanding of how students feel when stuck?
+- English Fluency: Was their English clear, fluent, and professional?
 
-Respond ONLY in this exact JSON format, no markdown, no extra text:
+Respond ONLY in this exact JSON format. Replace ALL placeholder values with your REAL evaluation:
 {
   "candidateName": "${candidateName}",
-  "overallVerdict": "Recommend",
-  "overallScore": 7.4,
-  "hiringManagerSummary": "Two sentences about this candidate for the hiring manager.",
+  "overallVerdict": "YOUR_REAL_VERDICT_HERE",
+  "overallScore": 0.0,
+  "hiringManagerSummary": "YOUR_REAL_2_SENTENCE_SUMMARY_HERE.",
   "dimensions": [
     {
       "name": "Communication Clarity",
-      "score": 8,
-      "summary": "Explains ideas in a clear, structured way",
-      "quote": "Direct quote from their answer here",
-      "improvement": "One specific thing they could improve"
+      "score": 0,
+      "summary": "YOUR_REAL_SUMMARY_BASED_ON_TRANSCRIPT",
+      "quote": "ACTUAL_VERBATIM_QUOTE_FROM_TRANSCRIPT",
+      "improvement": "ONE_SPECIFIC_ACTIONABLE_IMPROVEMENT"
     },
     {
       "name": "Warmth & Patience",
-      "score": 7,
-      "summary": "Shows genuine care for student progress",
-      "quote": "Direct quote from their answer here",
-      "improvement": "One specific thing they could improve"
+      "score": 0,
+      "summary": "YOUR_REAL_SUMMARY_BASED_ON_TRANSCRIPT",
+      "quote": "ACTUAL_VERBATIM_QUOTE_FROM_TRANSCRIPT",
+      "improvement": "ONE_SPECIFIC_ACTIONABLE_IMPROVEMENT"
     },
     {
       "name": "Teaching Ability",
-      "score": 8,
-      "summary": "Uses relatable examples to teach concepts",
-      "quote": "Direct quote from their answer here",
-      "improvement": "One specific thing they could improve"
+      "score": 0,
+      "summary": "YOUR_REAL_SUMMARY_BASED_ON_TRANSCRIPT",
+      "quote": "ACTUAL_VERBATIM_QUOTE_FROM_TRANSCRIPT",
+      "improvement": "ONE_SPECIFIC_ACTIONABLE_IMPROVEMENT"
     },
     {
       "name": "Student Empathy",
-      "score": 7,
-      "summary": "Acknowledges student frustration thoughtfully",
-      "quote": "Direct quote from their answer here",
-      "improvement": "One specific thing they could improve"
+      "score": 0,
+      "summary": "YOUR_REAL_SUMMARY_BASED_ON_TRANSCRIPT",
+      "quote": "ACTUAL_VERBATIM_QUOTE_FROM_TRANSCRIPT",
+      "improvement": "ONE_SPECIFIC_ACTIONABLE_IMPROVEMENT"
     },
     {
       "name": "English Fluency",
-      "score": 7,
-      "summary": "Clear English with occasional hesitations",
-      "quote": "Direct quote from their answer here",
-      "improvement": "One specific thing they could improve"
+      "score": 0,
+      "summary": "YOUR_REAL_SUMMARY_BASED_ON_TRANSCRIPT",
+      "quote": "ACTUAL_VERBATIM_QUOTE_FROM_TRANSCRIPT",
+      "improvement": "ONE_SPECIFIC_ACTIONABLE_IMPROVEMENT"
     }
   ]
 }`;

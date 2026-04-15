@@ -1,7 +1,7 @@
 # Cuemath AI Tutor Screener 🎙️
 > An AI-powered voice interview platform that screens tutor candidates exclusively on soft skills — communication clarity, warmth, patience, empathy, and English fluency.
 
-**Live Demo:** Deploy to Vercel (see setup below)
+**Live Demo:** [https://cuemath-ai-evaluator.vercel.app/](https://cuemath-ai-evaluator.vercel.app/)
 **Repo:** [github.com/Dpss123/cuemath-ai-evaluator](https://github.com/Dpss123/cuemath-ai-evaluator)
 
 ---

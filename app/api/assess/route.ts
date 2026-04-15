@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+import OpenAI from "openai";
 
 export async function POST(req: NextRequest) {
+  const groq = new OpenAI({
+    apiKey: process.env.GROQ_API_KEY ?? "",
+    baseURL: "https://api.groq.com/openai/v1",
+  });
+
   try {
     const { messages, candidateName } = await req.json();
 
@@ -34,7 +37,9 @@ Dimensions to score:
 Also provide:
 - Overall verdict: "Strong Recommend" / "Recommend" / "Borderline" / "Not Recommend"
 - Overall score (average of 5 dimensions, to 1 decimal)
-- A 2-sentence hiring manager summary
+- A 2-sentence hiring manager summary. IMPORTANT: This evaluation is the main factor for selecting candidates for the second round. Make sure the summary explicitly states whether their soft skills make them a good fit to advance to the second round.
+
+CRITICAL INSTRUCTION: We are hiring for soft skills. Do not penalize heavily for mathematical mistakes; judge them on communication, patience, warmth, English fluency, and how well they simplify concepts.
 
 Respond ONLY in this exact JSON format, no markdown, no extra text:
 {
@@ -81,9 +86,13 @@ Respond ONLY in this exact JSON format, no markdown, no extra text:
   ]
 }`;
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
-    const result = await model.generateContent(prompt);
-    const raw = result.response.text().trim();
+    const response = await groq.chat.completions.create({
+      model: "llama-3.1-8b-instant",
+      messages: [{ role: "user", content: prompt }],
+      response_format: { type: "json_object" },
+      temperature: 0.2
+    });
+    const raw = response.choices[0].message.content || "";
 
     // Strip markdown code fences if Gemini wraps the JSON
     const jsonStr = raw.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "").trim();

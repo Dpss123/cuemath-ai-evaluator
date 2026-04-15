@@ -18,7 +18,7 @@ export default function Home() {
   };
 
   return (
-    <main style={{ 
+    <main style={{
       position: "relative", zIndex: 1, minHeight: "100vh", display: "flex", flexDirection: "column",
       background: "#030712", overflow: "hidden"
     }}>
@@ -153,7 +153,7 @@ export default function Home() {
           box-shadow: 0 50px 120px -20px rgba(0,0,0,1), 0 0 80px rgba(99,102,241,0.3);
         }
       `}</style>
-      
+
       <div className="hero-glow" />
       <div className="hero-glow-2" />
 
@@ -179,7 +179,7 @@ export default function Home() {
           padding: "6px 14px", borderRadius: 20, letterSpacing: "0.05em",
           display: "flex", alignItems: "center", gap: 6
         }}>
-          <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#6ee7b7", display: "inline-block", boxShadow: "0 0 8px #6ee7b7" }}/>
+          <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#6ee7b7", display: "inline-block", boxShadow: "0 0 8px #6ee7b7" }} />
           SYSTEM ONLINE
         </div>
       </header>
@@ -187,10 +187,10 @@ export default function Home() {
       <div style={{
         width: "100%", padding: "60px 40px", display: "flex", justifyContent: "center"
       }}>
-        <div style={{ 
-          display: "flex", flexWrap: "wrap", alignItems: "flex-start", 
+        <div style={{
+          display: "flex", flexWrap: "wrap", alignItems: "flex-start",
           justifyContent: "space-between", gap: "60px", maxWidth: 1200, width: "100%",
-          position: "relative", zIndex: 1 
+          position: "relative", zIndex: 1
         }}>
           {/* Left Column Component */}
           <div style={{ flex: "1 1 400px", maxWidth: 520, paddingTop: "20px" }}>
@@ -213,7 +213,7 @@ export default function Home() {
               marginBottom: 40, maxWidth: 480,
               animationDelay: "0.2s", opacity: 0
             }}>
-              A 5-minute interactive voice conversation evaluating your teaching clarity, empathy, and mathematical communication. <strong>No human required.</strong>
+              A 5 to 10 minute interactive voice conversation evaluating your teaching clarity, empathy, and mathematical communication. <strong>No human required.</strong>
             </p>
 
             {!showForm ? (
@@ -222,7 +222,7 @@ export default function Home() {
                   Begin Evaluation
                 </button>
                 <div style={{ marginTop: 16, fontSize: 13, color: "#64748b", display: "flex", alignItems: "center", gap: 6 }}>
-                  <span style={{color: "#10b981"}}>✔</span> Requires microphone access
+                  <span style={{ color: "#10b981" }}>✔</span> Requires microphone access
                 </div>
               </div>
             ) : (
@@ -270,14 +270,14 @@ export default function Home() {
           </div>
 
           {/* Right Column Component: Dashboard Mockup Image */}
-          <div className="fade-up" style={{ 
-            flex: "1 1 500px", maxWidth: 680, 
-            animationDelay: "0.2s", opacity: 0 
+          <div className="fade-up" style={{
+            flex: "1 1 500px", maxWidth: 680,
+            animationDelay: "0.2s", opacity: 0
           }}>
             <div className="mockup-wrapper">
-              <img 
-                src="/dashboard_mockup.png" 
-                alt="AI Platform Dashboard Interface" 
+              <img
+                src="/dashboard_mockup.png"
+                alt="AI Platform Dashboard Interface"
                 style={{
                   width: "100%", height: "auto", display: "block",
                   borderRadius: 16, border: "1px solid rgba(255,255,255,0.1)"
@@ -294,7 +294,7 @@ export default function Home() {
                 </div>
               </div>
             </div>
-            
+
             <style>{`@keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-15px); } 100% { transform: translateY(0px); } }`}</style>
           </div>
         </div>
@@ -311,7 +311,7 @@ export default function Home() {
               <h2 style={{ fontSize: 32, fontWeight: 800, letterSpacing: "-0.03em" }}>Automated Evaluation Workflow</h2>
             </div>
           </div>
-          
+
           <div className="process-grid">
             {[
               { step: "01", icon: "👤", title: "Identity Verification", desc: "Secure input of candidate credentials." },

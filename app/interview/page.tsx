@@ -54,12 +54,25 @@ export default function InterviewPage() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const barsRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
+  const loadedVoicesRef = useRef<SpeechSynthesisVoice[]>([]);
+  const isListeningRef = useRef(false);
 
   useEffect(() => {
     const name = sessionStorage.getItem("candidate_name");
     if (!name) { router.push("/"); return; }
     setCandidateName(name);
-    synthRef.current = window.speechSynthesis;
+    
+    if (typeof window !== "undefined") {
+      synthRef.current = window.speechSynthesis;
+      const loadVoices = () => {
+        loadedVoicesRef.current = window.speechSynthesis.getVoices();
+      };
+      loadVoices();
+      // Chrome loads voices asynchronously
+      if (window.speechSynthesis.onvoiceschanged !== undefined) {
+        window.speechSynthesis.onvoiceschanged = loadVoices;
+      }
+    }
   }, [router]);
 
   const animateBars = useCallback((active: boolean) => {
@@ -71,6 +84,7 @@ export default function InterviewPage() {
   }, []);
 
   const stopListening = useCallback(() => {
+    isListeningRef.current = false;
     if (recognitionRef.current) {
       try { recognitionRef.current.stop(); } catch { /* ignore */ }
     }
@@ -89,7 +103,7 @@ export default function InterviewPage() {
     utter.rate = 0.95; // Slightly slower feels more conversational
     utter.pitch = 1.0; // Flat pitch helps avoid the robotic "sing-song" default
     utter.volume = 1;
-    const voices = synthRef.current.getVoices();
+    const voices = loadedVoicesRef.current.length > 0 ? loadedVoicesRef.current : synthRef.current.getVoices();
     
     // Proactively hunt for premium, natural-sounding, or high-definition voices
     const preferred = 
@@ -134,7 +148,16 @@ export default function InterviewPage() {
       if (final) setTranscript(prev => prev + final);
       setInterimTranscript(interim);
     };
-    recognition.onend = () => { animateBars(false); };
+    
+    recognition.onend = () => {
+      if (isListeningRef.current) {
+        // Browser aggressively cut off listening due to silence! Auto-restart it!
+        try { recognition.start(); } catch { /* ignore */ }
+      } else {
+        animateBars(false);
+      }
+    };
+    
     recognition.onerror = (e: { error: string }) => {
       if (e.error !== "no-speech" && e.error !== "aborted") {
         setMicError("Mic error: " + e.error + ". Please allow microphone access.");
@@ -152,6 +175,7 @@ export default function InterviewPage() {
       });
     }, 1000);
 
+    isListeningRef.current = true;
     recognition.start();
   }, [animateBars]);
 
@@ -344,7 +368,7 @@ export default function InterviewPage() {
                 • Please allow microphone browser permissions<br />
                 • Use headphones for the best experience<br />
                 • Find a quiet environment to speak clearly<br />
-                • The AI interviewer will end the session automatically
+                • The AI interviewer will end the session automatically after 5 to 10 minutes
               </div>
             </div>
 

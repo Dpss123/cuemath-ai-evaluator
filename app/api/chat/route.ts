@@ -1,16 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+import OpenAI from "openai";
 
 export async function POST(req: NextRequest) {
+  const groq = new OpenAI({
+    apiKey: process.env.GROQ_API_KEY ?? "",
+    baseURL: "https://api.groq.com/openai/v1",
+  });
+
   try {
     const { messages, candidateName } = await req.json();
 
     const systemPrompt = `You are a friendly, professional human resources interviewer for Cuemath, an online math education platform for kids (ages 6-18).
 You are interviewing a candidate named ${candidateName} for a tutoring position.
 
-Your goal is to assess their soft skills over a short 5-10 minute conversation: communication clarity, warmth, patience, ability to simplify, and English fluency.
+Your singular goal is to assess their SOFT SKILLS over a 5 to 10-minute conversation: communication clarity, warmth, patience, ability to simplify, and English fluency. If the candidate says something mathematically wrong, ignore it. We only care about how they communicate, not their subject matter expertise.
 
 Rules for the interview:
 1. Act like a real person. Be conversational, natural, and friendly. Do NOT act robotic.
@@ -26,23 +29,15 @@ Rules for the interview:
 
 Keep your responses brief, warm, and spoken (1-3 sentences). This is a fast-paced voice conversation, avoid bullet points or long paragraphs.`;
 
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash-lite",
-      systemInstruction: systemPrompt
+    const response = await groq.chat.completions.create({
+      model: "llama-3.1-8b-instant",
+      messages: [
+        { role: "system", content: systemPrompt },
+        ...messages
+      ]
     });
 
-    const geminiMessages = messages.map((m: any) => ({
-      role: m.role === "assistant" ? "model" : "user",
-      parts: [{ text: m.content }]
-    }));
-
-    // Generate response using chat history
-    const chat = model.startChat({
-        history: geminiMessages.slice(0, -1) // All except the final one
-    });
-
-    const result = await chat.sendMessage(geminiMessages[geminiMessages.length - 1].parts[0].text);
-    const text = result.response.text();
+    const text = response.choices[0].message.content;
 
     return NextResponse.json({ text });
   } catch (err) {

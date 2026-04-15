@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
+import { GROQ_API_KEY } from "@/lib/config";
 
 export async function POST(req: NextRequest) {
   const groq = new OpenAI({
-    apiKey: process.env.GROQ_API_KEY ?? "",
+    apiKey: GROQ_API_KEY,
     baseURL: "https://api.groq.com/openai/v1",
   });
 

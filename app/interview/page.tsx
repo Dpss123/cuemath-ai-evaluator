@@ -165,7 +165,6 @@ export default function InterviewPage() {
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = "en-IN";
-    recognition.maxAlternatives = 1;
     recognitionRef.current = recognition;
 
     // Accumulate final results into a persistent ref to survive auto-restarts

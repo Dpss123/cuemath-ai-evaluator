@@ -80,16 +80,19 @@ export default function ResultsPage() {
   const [messages, setMessages] = useState<{role: string, content: string}[]>([]);
   const [showLog, setShowLog] = useState(false);
   const [activeTab, setActiveTab] = useState("Live Session");
+  const [candidateEmail, setCandidateEmail] = useState("");
 
   useEffect(() => {
     const sessionMessages = sessionStorage.getItem("interview_messages");
     const name = sessionStorage.getItem("candidate_name");
+    const email = sessionStorage.getItem("candidate_email") || "Not Provided";
 
     if (!sessionMessages || !name) {
       router.push("/");
       return;
     }
 
+    setCandidateEmail(email);
     setMessages(JSON.parse(sessionMessages));
 
     const loaders = [
@@ -167,14 +170,7 @@ export default function ResultsPage() {
   }
 
   const downloadResults = () => {
-    if (!assessment) return;
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(assessment, null, 2));
-    const dlAnchorElem = document.createElement('a');
-    dlAnchorElem.setAttribute("href", dataStr);
-    dlAnchorElem.setAttribute("download", `Candidate_Report_${assessment.candidateName.replace(/\s+/g, '_')}.json`);
-    document.body.appendChild(dlAnchorElem);
-    dlAnchorElem.click();
-    dlAnchorElem.remove();
+    window.print();
   };
 
   return (
@@ -182,6 +178,18 @@ export default function ResultsPage() {
       <style>{`
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background: #000; }
+        @media print {
+          @page { size: landscape; margin: 0; }
+          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background: #0d1117 !important; }
+          .topbar { display: none !important; }
+          .end-btn, .export-btn { display: none !important; }
+          .content { padding: 20px !important; max-width: 100% !important; }
+          .dash { min-height: auto !important; }
+          .wave-card .shortlist-btn { display: none !important; }
+          .print-header { display: flex !important; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #1f2937; align-items: center; justify-content: space-between; }
+          .page-title { display: none !important; }
+        }
+        .print-header { display: none; }
         .dash { background: #0d1117; border-radius: 12px; overflow: hidden; font-family: 'Syne', system-ui, sans-serif; color: #e2e8f0; min-height: 100vh; }
         .topbar { background: #111827; border-bottom: 1px solid #1f2937; padding: 0 20px; display: flex; align-items: center; gap: 0; height: 52px; user-select: none; }
         .logo { display: flex; align-items: center; gap: 8px; margin-right: 32px; cursor: pointer; }
@@ -325,9 +333,24 @@ export default function ResultsPage() {
                 <div style={{ display: "flex", gap: 12 }}>
                   <button className="export-btn" onClick={downloadResults}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                    Export JSON
+                    Export PDF
                   </button>
                   <button className="end-btn" onClick={() => router.push("/")}>End Session</button>
+                </div>
+              </div>
+
+              <div className="print-header">
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <div className="logo-icon" style={{width: 44, height: 44, fontSize: 18}}>IQ</div>
+                  <div>
+                    <div style={{fontSize: 22, fontWeight: 800, color: '#f1f5f9', letterSpacing: '-0.02em'}}>Cuemath Evaluator</div>
+                    <div style={{fontSize: 11, color: '#06b6d4', letterSpacing: '0.15em', fontWeight: 700}}>OFFICIAL CANDIDATE DIAGNOSTIC REPORT</div>
+                  </div>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <div style={{fontSize: 16, fontWeight: 800, color: '#f1f5f9'}}>{assessment.candidateName}</div>
+                  <div style={{fontSize: 13, color: '#64748b', marginTop: 2}}>{candidateEmail}</div>
+                  <div style={{fontSize: 11, color: '#475569', marginTop: 4}}>Generated on {new Date().toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}</div>
                 </div>
               </div>
 
@@ -360,7 +383,7 @@ export default function ResultsPage() {
                   <div className="cand-avatar">{getInitials(assessment.candidateName)}</div>
                   <div style={{ flex: 1 }}>
                     <div className="cand-name">{assessment.candidateName}</div>
-                    <div className="cand-id">CANDIDATE ID: #{Math.floor(Math.random()*9000)+1000}</div>
+                    <div className="cand-id">{candidateEmail} &nbsp;•&nbsp; CANDIDATE ID: #{Math.floor(Math.random()*9000)+1000}</div>
                   </div>
                   <div className="score-block">
                     <div className="score-label">OVERALL SCORE</div>
